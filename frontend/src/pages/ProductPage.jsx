@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function ProductPage() {
     const { id } = useParams();
     const { addToCart } = useCart();
@@ -13,7 +15,7 @@ function ProductPage() {
 
     useEffect(() => {
         // Fetch product from backend
-        fetch( `http://localhost:5000/api/products/${id}` )
+        fetch( `${API_BASE}/api/products/${id}` )
            .then(res=> {
             if (!res.ok) throw new Error('Product not found');
             return res.json();
@@ -36,7 +38,7 @@ function ProductPage() {
     <h2 className="text-2xl font-bold mb-4">{product.name}</h2>
     {product.imageUrl && (
       <img
-        src={`http://localhost:5000${product.imageUrl}`}
+        src={`${API_BASE}${product.imageUrl}`}
         alt={product.name}
         className="w-full h-60 object-cover rounded-lg mb-4"
       />

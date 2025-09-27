@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function Home() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -13,7 +15,7 @@ function Home() {
 useEffect(() => {
   setLoading(true);
 
-  fetch('http://localhost:5000/api/vendors/approved')
+  fetch(`${API_BASE}/api/vendors/approved`)
     .then(res => res.json())
     .then(data => {
       if (Array.isArray(data)) {
@@ -31,7 +33,7 @@ useEffect(() => {
     });
 
   // Optional: Load products for featured items
-  fetch('http://localhost:5000/api/products')
+  fetch(`${API_BASE}api/products`)
     .then(res => res.json())
     .then(data => setProducts(data))
     .catch(err => console.error('Failed to load products:', err));

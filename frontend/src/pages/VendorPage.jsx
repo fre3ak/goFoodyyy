@@ -5,6 +5,8 @@ import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { use } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function VendorPage() {
   const { vendorSlug } = useParams();
   const { addToCart } = useCart();
@@ -13,7 +15,7 @@ function VendorPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/products?vendorSlug=${vendorSlug}`)
+    fetch(`${API_BASE}/api/products?vendorSlug=${vendorSlug}`)
       .then(res => res.json())
       .then(data => {
         setVendorProducts(data);

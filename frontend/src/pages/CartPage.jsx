@@ -2,6 +2,8 @@
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function CartPage() {
   const { cart, removeFromCart } = useCart(); // ✅ Removed unused addToCart
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ function CartPage() {
                   {/* Image */}
                   {item.imageUrl && (
                     <img
-                      src={`http://localhost:5000${item.imageUrl}`}
+                      src={`${API_BASE}${item.imageUrl}`}
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded"
                     />

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function CheckoutPage() {
     const { cart } = useCart();
     const navigate = useNavigate();
@@ -67,7 +69,7 @@ function CheckoutPage() {
                   paymentMethod: "bank_transfer"
               };
 
-              const response = await fetch('http://localhost:5000/api/orders', {
+              const response = await fetch(`${API_BASE}/api/orders`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -100,7 +102,7 @@ function CheckoutPage() {
         const details = {};
         for (const vendorSlug of Object.keys(cartByVendor)) {
           try {
-            const res = await fetch(`http://localhost:5000/api/vendors/${vendorSlug}`);
+            const res = await fetch(`${API_BASE}/api/vendors/${vendorSlug}`);
             if (res.ok) {
               const data = await res.json();
               details[vendorSlug] = data;

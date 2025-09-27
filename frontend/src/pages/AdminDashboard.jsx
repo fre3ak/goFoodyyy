@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function AdminDashboard() {
   const [vendors, setVendors] = useState([]);
   const [pendingVendors, setPendingVendors] = useState([]);
@@ -12,7 +14,7 @@ function AdminDashboard() {
 
   const fetchVendors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/vendors/all/vendors');
+      const response = await fetch(`${API_BASE}/api/vendors/all/vendors`);
       const data = await response.json();
 
       const approved = data.filter(v => v.status === 'approved');
@@ -28,7 +30,7 @@ function AdminDashboard() {
   const approveVendor = async (vendorSlug) => {
     try {
       // ✅ Fixed template string - use backticks, not single quotes
-      const response = await fetch(`http://localhost:5000/api/vendors/${vendorSlug}/approve`, {
+      const response = await fetch(`${API_BASE}/api/vendors/${vendorSlug}/approve`, {
         method: 'PUT'
       });
 
@@ -48,7 +50,7 @@ function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/orders');
+      const response = await fetch(`${API_BASE}/api/orders`);
       const data = await response.json();
       setOrders(data);
     } catch (error) {

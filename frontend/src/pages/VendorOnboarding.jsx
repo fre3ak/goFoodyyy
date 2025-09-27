@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function VendorOnboarding() {
   const [formData, setFormData] = useState({
     vendorName: '',
@@ -84,7 +86,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/vendors/onboard', {
+    const res = await fetch(`${API_BASE}/api/vendors/onboard`, {
       method: 'POST',
       body: data
     });
