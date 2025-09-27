@@ -47,7 +47,7 @@ useEffect(() => {
           <div
             className='absolute inset-0 bg-cover bg-center brightness-75'
             style={{
-              backgroundImage: `url(https://www.africanrecipes.com.ng/wp-content/uploads/2025/08/nigerian-shawarma-wrap-featured.png.webp)`,
+              backgroundImage: `url(https://www.canva.com/design/DAG0LBQlCdM/UKvw8_GEkRkNzfZDUIIovQ/view?utm_content=DAG0LBQlCdM&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hf51325696e)`,
               // filter: 'brightness(0.8)'
             }}
           ></div>
