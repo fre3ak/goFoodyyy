@@ -53,7 +53,7 @@ useEffect(() => {
           ></div>
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-400/80 to-red-500/80 text-white"></div>
+          {/*<div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-400/80 to-red-500/80 text-white"></div>*/}
 
           {/* Content */}
           {/* <div className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-16 text-center"> */}
