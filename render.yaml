@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: gofoodyyy-backend
+    env: nodejs
+    region: oregon
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: ADMIN_EMAIL
+        value: admin@gofoodyyy.com

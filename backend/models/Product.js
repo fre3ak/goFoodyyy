@@ -1,25 +1,15 @@
 // models/Product.js
 module.exports = (sequelize, DataTypes) => {
   const Product = sequelize.define('Product', {
-    name: {
-      type: DataTypes.STRING,
+    name: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.DECIMAL(10, 2), allowNull: false }, 
+    description: { type: DataTypes.TEXT },
+    imageUrl: { type: DataTypes.STRING },
+    vendorName: { type: DataTypes.STRING, allowNull: false },
+    vendorSlug: { 
+      type: DataTypes.STRING, 
       allowNull: false,
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    imageUrl: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    vendorName: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      defaultValue: 'vendor'
     },
     paymentMethod: {
       type: DataTypes.STRING,

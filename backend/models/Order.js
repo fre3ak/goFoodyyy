@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
          type: DataTypes.JSON, // to store { latitude, longitude }
          allowNull: true,
       },
+      vendorSlug: {
+         type: DataTypes.TEXT,
+         allowNull: false,
+      },
       items: {
          type: DataTypes.JSON, // to store array of items [{ productId, name, price, quantity }]
          allowNull: false,
@@ -63,6 +67,10 @@ module.exports = (sequelize, DataTypes) => {
          defaultValue: 'pending', // default status is 'pending'
          validate: { isIn: [['pending', 'paid', 'preparing', 'out_for_delivery', 'delivered', 'cancelled']]}
       },
+      notes: {
+         type: DataTypes.TEXT,
+         allowNull: true,
+      },
       userAgent: {
          type: DataTypes.TEXT,
          allowNull: true,
@@ -78,12 +86,8 @@ module.exports = (sequelize, DataTypes) => {
       cookies: {
          type: DataTypes.TEXT, // storing as JSON string
          allowNull: true,
-      },
-      notes: {
-         type: DataTypes.TEXT,
-         allowNull: true,
       }
-    }, {
+   }, {
       timestamps: true, // automatically adds createdAt and updatedAt
     });
     return Order;

@@ -1,17 +1,37 @@
 // controllers/productController.js
 const db = require('../models');
 const Product = db.Product;
+const Vendor = db.Vendor;
 
 // Get all products
+// controllers/productController.js
 exports.getAllProducts = async (req, res) => {
+  const { vendorSlug } = req.query;
+
   try {
+    // If filtering by vendorSlug, first check if vendor exists and is approved
+    if (vendorSlug) {
+      const vendor = await Vendor.findOne({
+        where: { vendorSlug, status: 'approved' }
+      });
+
+      if (!vendor) {
+        return res.status(404).json({
+          error: 'Vendor not found or pending approval'
+        });
+      }
+
+      const products = await Product.findAll({ where: { vendorSlug } });
+      return res.status(200).json(products);
+    }
+
+    // Otherwise, return all products
     const products = await Product.findAll();
     res.status(200).json(products);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ 
-      message: 'Failed to fetch products', 
-      error: err.message 
+    console.error('Error fetching products:', err);
+    res.status(500).json({
+      error: 'Failed to fetch products'
     });
   }
 };

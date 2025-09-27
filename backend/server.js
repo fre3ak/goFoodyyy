@@ -1,10 +1,17 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs-extra');
+const path = require('path');
 require('dotenv').config();
+
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+fs.ensureDirSync(uploadDir);
 
 const sequelize = require('./config/db');
 const db = require('./models'); // Import the models index
+const vendorRoutes = require('./routes/vendors');
 const Product = db.Product;
 const Order = db.Order;
 
@@ -16,8 +23,16 @@ const productRoutes = require('./routes/products');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
+//Serve static files (so images are accessible)
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.get('/', (req, res) => {
   res.send(`
@@ -30,11 +45,13 @@ app.get('/', (req, res) => {
 
 app.use('/api/products', productRoutes);
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/vendors', vendorRoutes);
 
 // Sync DB and start server
-sequelize.sync({ force: false })
+sequelize.sync({ alter: true })
   .then(() => {
     console.log('✅ Database synced');
+    console.log('📋 Models:', Object.keys(db));
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });

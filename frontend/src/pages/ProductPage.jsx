@@ -1,6 +1,6 @@
 // src/pages/ProductPage.jsx
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 function ProductPage() {
@@ -8,6 +8,8 @@ function ProductPage() {
     const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [added, setAdded] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Fetch product from backend
@@ -30,28 +32,42 @@ function ProductPage() {
     if (!product) return <p className='text-center'>Product not found.</p>;
 
     return (
-      <div className='max-w-2xl mx-auto p-6'>
-        <h2 className="text-2xl font-bold mb-4">{product.name}</h2>
-        {product.imageUrl && (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-60 object-cover rounded-lg mb-4"
-            />
-        )}
-        <p className='text-lg text-gray-700 mb-2'>Price: ${product.price}</p>
-        <p className='text-gray-600 mb-4'>{product.description}</p>
-        <p className='text-sm text-gray-500'>Sold by: {product.vendorName}</p> 
-        
-        <div className='mt-6'>
-          <button 
-            onClick={() => addToCart(product)} 
-            className='bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'>
-            Add to Cart
-          </button>
-        </div>
-      </div>
-    );
+  <div className='max-w-2xl mx-auto p-6'>
+    <h2 className="text-2xl font-bold mb-4">{product.name}</h2>
+    {product.imageUrl && (
+      <img
+        src={`http://localhost:5000${product.imageUrl}`}
+        alt={product.name}
+        className="w-full h-60 object-cover rounded-lg mb-4"
+      />
+    )}
+    <p className='text-lg text-gray-700 mb-2'>Price: ₦{product.price}</p>
+    <p className='text-gray-600 mb-4'>{product.description}</p>
+    <p className='text-sm text-gray-500'>Sold by: {product.vendorName}</p>
+
+    {/* Combined button section */}
+    <div className='mt-6'>
+      <button
+        onClick={() => {
+          addToCart(product);
+          setAdded(true);
+        }}
+        className='btn-primary w-full'
+      >
+        {added ? 'Added!' : 'Add to Cart'}
+      </button>
+
+      {/* Show "Go to Cart" only after adding */}
+      {added && (
+        <button
+          onClick={() => navigate("/cart")} 
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mt-2 w-full">
+          &rarr; Go to Cart
+        </button>
+      )}
+    </div>
+  </div>
+);
 }
 
 export default ProductPage;
