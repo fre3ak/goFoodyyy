@@ -39,15 +39,39 @@ useEffect(() => {
   if (loading) return <p className="text-center">Loading vendors and menu...</p>;
 
   return (
-    <div>
+    <div className='relative overflow-hidden'>
       {/* Hero Content */}
-      {/* <div className="bg-gradient-to-r from-orange-500 via-orange-400 to-red-500 text-white min-h-screen flex items-center justify-center relative overflow-hidden"> */}
-        <div className='relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-16 text-center'>
+        <div className='relative min-h-[550px] flex items-center justify-center'>
+          {/* --------------------
+            NEW: VIDEO BACKGROUND ELEMENT
+            -------------------- */}
+          {/* <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className='absolute inset-0 w-full h-full object-cover'
+              style={{ filter: 'brightness(0.75)' }} // Keep the dimming filter
+          >
+              {/* IMPORTANT: Replace 'your-background-video.mp4' with the actual path or URL */}
+              {/* <source src="your-background-video.mp4" type="video/mp4" /> */}
+              
+              {/* Fallback for browsers that don't support the video format */}
+              {/* Your browser does not support the video tag.
+          </video> */}
+          {/* --------------------
+            NEW: SLIDESHOW CONTAINER
+            -------------------- */}
+          {/* <div id="slideshow-bg" className='absolute inset-0'>
+              `<img src="https://res.cloudinary.com/dt9yqinhk/image/upload/v1758980263/samples/breakfast.jpg" alt="Slide 1" className="slide-image" />
+              <img src="https://res.cloudinary.com/dt9yqinhk/image/upload/v1758980256/samples/food/fish-vegetables.jpg" alt="Slide 2" className="slide-image" />
+              <img src="image 3" alt="Slide 3" className="slide-image" />
+          </div>` */}
           {/* Background Image */}
           <div
-            className='absolute inset-0 bg-cover bg-center brightness-75'
+            className='absolute inset-0 bg-cover bg-center'
             style={{
-              backgroundImage: `url(https://www.canva.com/design/DAG0LBQlCdM/UKvw8_GEkRkNzfZDUIIovQ/view?utm_content=DAG0LBQlCdM&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hf51325696e)`,
+              backgroundImage: `url(https://res.cloudinary.com/dt9yqinhk/image/upload/v1758980255/samples/food/dessert.jpg)`,
               // filter: 'brightness(0.8)'
             }}
           ></div>
@@ -80,13 +104,6 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Optional: Add subtle pattern */}
-          <div className='absolute inset-0 opacity-0.3 pointer-events-none background-size: 30px 30px'>
-            <div style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.2'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-            }} className='w-full h-full bg-repeat'
-            ></div>
-          </div>
         </div>
       {/* Vendors section*/ }
       <section id="virtual-kitchens" className="py-16 bg-gray-50">
