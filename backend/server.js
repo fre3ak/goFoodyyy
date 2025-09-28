@@ -25,7 +25,8 @@ const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
   origin: ['http://localhost:5173',
-           'https//:gofoodyyy.netlify.app'
+           'https//:gofoodyyy.netlify.app',
+           'https//:gofoodyyy.onrender.com'
   ],
   credentials: true,
   optionsSuccessStatus: 200
@@ -33,6 +34,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+// Add this to your server.js to test CORS
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    allowedOrigin: req.headers.origin 
+  });
+});
 
 //Serve static files (so images are accessible)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
