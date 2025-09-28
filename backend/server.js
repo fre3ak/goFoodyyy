@@ -25,7 +25,9 @@ const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
   origin: ['https//:gofoodyyy.netlify.app',
-           'http://localhost:5173'],
+           'http://localhost:5173'
+  ],
+  Credentials: true,
   optionsSuccessStatus: 200
 };
 
