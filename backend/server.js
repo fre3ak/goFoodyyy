@@ -23,24 +23,29 @@ const productRoutes = require('./routes/products');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https//:gofoodyyy.netlify.app',
+  'https//:gofoodyyy.onrender.com'
+];
+
 const corsOptions = {
-  origin: ['http://localhost:5173',
-           'https//:gofoodyyy.netlify.app',
-           'https//:gofoodyyy.onrender.com'
-  ],
+  origin: function (origin, callback) {
+
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
-// Add this to your server.js to test CORS
-app.get('/api/test-cors', (req, res) => {
-  res.json({ 
-    message: 'CORS is working!',
-    allowedOrigin: req.headers.origin 
-  });
-});
 
 //Serve static files (so images are accessible)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
@@ -57,6 +62,24 @@ app.get('/', (req, res) => {
 app.use('/api/products', productRoutes);
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/vendors', vendorRoutes);
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test CORS route
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    allowedOrigin: req.headers.origin,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Sync DB and start server
 sequelize.sync({ alter: true })
