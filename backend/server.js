@@ -24,10 +24,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
-  origin: ['https//:gofoodyyy.netlify.app',
-           'http://localhost:5173'
+  origin: ['http://localhost:5173',
+           'https//:gofoodyyy.netlify.app'
   ],
-  Credentials: true,
+  credentials: true,
   optionsSuccessStatus: 200
 };
 
