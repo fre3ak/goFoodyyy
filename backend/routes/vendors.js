@@ -7,7 +7,6 @@ const db = require('../models'); // ✅ Fixed import
 const Vendor = db.Vendor;        // ✅ Get from db object
 const Product = db.Product;      // ✅ Get from db object
 const sendEmail = require('../utils/sendEmail');
-const { where, cast } = require('sequelize');
 
 const router = express.Router();
 

@@ -1,6 +1,8 @@
 // routes/products.js
 const express = require('express');
-const Vendor = require('../models/Vendor'); // Already imported — good!
+const db = require('../models');
+const Product = db.Product;
+const Vendor = db.Vendor;
 
 const router = express.Router();
 

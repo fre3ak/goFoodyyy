@@ -3,43 +3,91 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://gofoodyyy.onrender.com';
 
 function Home() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const { addToCart } = useCart();
 
 useEffect(() => {
-  setLoading(true);
+  const fetchData = async () => {
+    setLoading(true);
+    setError('');
 
-  fetch(`${API_BASE}/api/vendors/approved`)
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) {
-        setVendors(data);
-      } else {
-        setVendors([]);
+    try {
+      // Fetch vendors
+      const vendorsResponse = await fetch(`${API_BASE}/api/vendors/approved`);
+
+      if (!vendorsResponse.ok) throw new Error('Failed to load vendors');
+      const vendorsData = await vendorsResponse.json();
+      setVendors(Array.isArray(vendorsData) ? vendorsData : []);
+
+      // Fetch products (optional - can be removed if not needed)
+      try {
+        const productsResponse = await fetch(`${API_BASE}/api/products`);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          setProducts(productsData);
+        }
+      } catch (productsError) {
+        console.warn('Products load failed, continuing without products:', productsError);
       }
-    })
-    .catch(err => {
-      console.error('Failed to load vendors:', err);
-      setVendors([]);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
 
-  // Optional: Load products for featured items
-  fetch(`${API_BASE}/api/products`)
-    .then(res => res.json())
-    .then(data => setProducts(data))
-    .catch(err => console.error('Failed to load products:', err));
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError('Failed to load vendors. Please try again later.');
+      setVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
 }, []);
+
+//   fetch(`${API_BASE}/api/vendors/approved`)
+//     .then(res => res.json())
+//     .then(data => {
+//       if (Array.isArray(data)) {
+//         setVendors(data);
+//       } else {
+//         setVendors([]);
+//       }
+//     })
+//     .catch(err => {
+//       console.error('Failed to load vendors:', err);
+//       setVendors([]);
+//     })
+//     .finally(() => {
+//       setLoading(false);
+//     });
+
+//   // Optional: Load products for featured items
+//   fetch(`${API_BASE}/api/products`)
+//     .then(res => res.json())
+//     .then(data => setProducts(data))
+//     .catch(err => console.error('Failed to load products:', err));
+// }, []);
   if (loading) return <p className="text-center">Loading vendors and menu...</p>;
 
+  if (error) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="bg-orange-500 text-white px-4 py-2 rounded"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+  
   return (
     <div className='relative overflow-hidden'>
       {/* Hero Content */}
