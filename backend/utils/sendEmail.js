@@ -1,20 +1,16 @@
-// utils/sendEmail.js - USING RESEND WITH COMMONJS
+// utils/sendEmail.js - COMPLETE WORKING VERSION
 const { Resend } = require('resend');
 
-// Initialize Resend with your API key
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Prevents immediate initialisation until needed
 let resendInstance = null;
 
 const getResendInstance = () => {
-  if (!resendInstance) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      console.log('⚠️ Resend API key not configured');
-      return null;
+  if (!resendInstance && process.env.RESEND_API_KEY) {
+    try {
+      resendInstance = new Resend(process.env.RESEND_API_KEY);
+      console.log('✅ Resend instance created');
+    } catch (error) {
+      console.error('❌ Failed to create Resend instance:', error.message);
     }
-    resendInstance = new Resend(apiKey);
   }
   return resendInstance;
 };
@@ -22,10 +18,9 @@ const getResendInstance = () => {
 async function sendEmail({ to, subject, html }) {
   const resend = getResendInstance();
   
-  // Skip if no Resend instance (API key not configured)
   if (!resend) {
-    console.log('📧 Email skipped - no Resend API key configured');
-    return { skipped: true, reason: 'No Resend API key' };
+    console.log('📧 Email skipped - Resend not configured');
+    return { skipped: true, reason: 'Resend not configured' };
   }
 
   try {
@@ -50,4 +45,5 @@ async function sendEmail({ to, subject, html }) {
   }
 }
 
+// ✅ MAKE SURE THIS EXPORT EXISTS
 module.exports = sendEmail;

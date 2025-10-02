@@ -7,6 +7,8 @@ const db = require('../models'); // ✅ Fixed import
 const Vendor = db.Vendor;        // ✅ Get from db object
 const Product = db.Product;      // ✅ Get from db object
 const sendEmail = require('../utils/sendEmail');
+console.log('sendEmail imported:', typeof sendEmail);
+console.log('sendEmail function:', sendEmail);
 
 const router = express.Router();
 
