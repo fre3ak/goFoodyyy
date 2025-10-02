@@ -116,26 +116,42 @@ router.put('/:vendorSlug/approve', async (req, res) => {
     await vendor.save();
 
     // Send approval email to vendor
-    await sendEmail({
-      to: vendor.email,
+    const emailResult = await sendEmail({
+      to: vendor.email, // Send to VENDOR
       subject: `🎉 Your Vendor Account Has Been Approved! - goFoodyyy`,
       html: `
         <h2>Congratulations, ${vendor.vendorName}!</h2>
         <p>Your vendor account has been approved and is now live on goFoodyyy.</p>
-        <p>Customers can now view your store at: <strong>http://localhost:5173/vendor/${vendor.vendorSlug}</strong></p>
-        <p><strong>Store Details:</strong></p>
+        
+        <h3>Your Store Details:</h3>
         <ul>
-          <li>Store Name: ${vendor.vendorName}</li>
-          <li>Store URL: http://localhost:5173/vendor/${vendor.vendorSlug}</li>
-          <li>Contact: ${vendor.phone}</li>
-          <li>Email: ${vendor.email}</li>
+          <li><strong>Store Name:</strong> ${vendor.vendorName}</li>
+          <li><strong>Store URL:</strong> https://gofoodyyy.netlify.app/vendor/${vendor.vendorSlug}</li>
+          <li><strong>Your Contact:</strong> ${vendor.phone}</li>
+          <li><strong>Your Email:</strong> ${vendor.email}</li>
         </ul>
-        <p>Start receiving orders today!</p>
-        <p>If you have any questions, contact us at support@gofoodyyy.com</p>
-    `
-  });
 
-    res.json({ message: 'Vendor approved successfully', vendor });
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+          <li>Share your store link with customers</li>
+          <li>Start receiving orders</li>
+          <li>Check your email for order notifications</li>
+        </ol>
+
+        <p>If you need to update your menu or store information, please contact support.</p>
+
+        <p>Welcome to the goFoodyyy family! 🎉</p>
+
+        <hr/>
+        <p><small>This is an automated message. Please do not reply to this email.</small></p>
+      `
+    });
+
+    res.json({ 
+      message: 'Vendor approved successfully', 
+      vendor,
+      emailSent: !emailResult.error
+    });
   } catch (err) {
     console.error('Approval error:', err);
     res.status(500).json({ error: 'Server error'});
@@ -226,22 +242,55 @@ router.post('/onboard', upload.fields([
 
     await Product.bulkCreate(menuItems);
 
-    await sendEmail({
-      to: process.env.ADMIN_EMAIL,
-      subject: `New Vendor Awaiting Approval: ${vendorName}`,
+    const emailResult = await sendEmail({
+      to: email,
+      subject: `Vendor Application Received - goFoodyyy`,
       html: `
-        <h2>New Vendor Application</h2>
-        <p><strong>Name:</strong> ${vendorName}</p>
-        <p><strong>Slug:</strong> ${vendorSlug}</p>
-        <p><strong>Contact:</strong> ${phone} | ${email}</p>
-        <p><strong>Status:</strong> Pending</p>
-        <p><a href="http://localhost:5173/admin">Review in Admin Dashboard</a></p>
+        <h2>Thank You for Your Application, ${vendorName}</h2>
+        <p>We have received your vendor application for <strong>${vendorName}</strong>.</p>
+
+        <h3>Application Details:</h3>
+        <ul>
+          <li><strong>Vendor Name:</strong>${vendorName}</li>
+          <li><strong>Vendor Slug:</strong>${vendorSlug}</li>
+          <li><strong>Contact Email:</strong>${email}</li>
+          <li><strong>Phone:</strong>${phone}</li>
+          <li><strong>Status:</strong>Pending Approval</li>
+        </ul>
+
+         <p><strong>What happens next?</strong></p>
+        <ol>
+          <li>Our team will review your application</li>
+          <li>You'll receive an email once approved</li>
+          <li>Your store will go live at: https://gofoodyyy.netlify.app/vendor/${vendorSlug}</li>
+        </ol>
+
+        <p>If you have any questions, please contact us at support@gofoodyyy.com</p>
+
+        <hr/>
+        <p><small>This is an automated confirmation. Please do not reply to this email.</small></p>
       `
     });
 
+    if (process.env.ADMIN_EMAIL) {
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL,
+        subject: `New Vendor Awaiting Approval: ${vendorName}`,
+        html: `
+          <h2>New Vendor Application</h2>
+          <p><strong>Name:</strong> ${vendorName}</p>
+          <p><strong>Slug:</strong> ${vendorSlug}</p>
+          <p><strong>Contact:</strong> ${phone} | ${email}</p>
+          <p><strong>Status:</strong> Pending</p>
+          <p><a href="https://gofoodyyy.netlify.app/admin">Review in Admin Dashboard</a></p>
+        `
+      });
+    }
+
     res.status(201).json({
-      message: 'Vendor submitted! Awaiting approval.',
-      vendorUrl: `/vendor/${vendorSlug}`
+      message: 'Vendor submitted! Awaiting approval. Check your email for confirmation.',
+      vendorUrl: `/vendor/${vendorSlug}`,
+      emailSent: !emailResult.error
     });
 
   } catch (err) {
