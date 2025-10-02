@@ -82,6 +82,25 @@ app.get('/api/test-cors', (req, res) => {
   });
 });
 
+// Test RESEND routex
+app.get('/api/test-resend', async (req, res) => {
+  try {
+    const result = await sendEmail({
+      to: 'your-email@gmail.com', // Use your actual email
+      subject: 'Resend Test from goFoodyyy',
+      html: '<h1>Resend Test</h1><p>If you receive this, Resend is working perfectly!</p>'
+    });
+    
+    res.json({ 
+      success: !result.error,
+      message: result.error ? 'Email failed' : 'Email sent successfully',
+      details: result
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
