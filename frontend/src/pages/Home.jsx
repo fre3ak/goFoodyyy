@@ -160,16 +160,45 @@ useEffect(() => {
         <h2 className="text-2xl font-bold text-center mb-6">Virtual Kitchens</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 px-6">
           {vendors.map(vendor => (
-            <Link to={`/vendor/${vendor.slug}`} key={vendor.slug}>
-              <div className="card text-center ">
-                <h3 className="text-xl font-bold">{vendor.name}</h3>
-                <p className="text-gray-600 mt-2">Tap to view menu</p>
+            <Link to={`/vendor/${vendor.vendorSlug}`} key={vendor.id || vendor.vendorSlug}>
+              <div className="card text-center bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                {vendor.logoUrl && (
+                  <img
+                    src={`${API_BASE}${vendor.logoUrl}`}
+                    alt={vendor.vendorName}
+                    className='w-20 h-20 rounded-full mx-auto mb-4 object-cover'
+                  />
+                )}
+                <h3 className="text-xl font-bold text-gray-900">{vendor.vendorName}</h3>
+                <p className="text-gray-900 mt-2">{vendor.state}, {vendor.city}</p>
+                <div className='flex justify-center gap-2 mt-3'>
+                  {vendor.delivery && (
+                    <span className='bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded'>Delivery</span>
+                  )}
+                  {vendor.pickup && (
+                    <span className='bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded'>Pickup</span>
+                  )}
+                </div>
+                <p className="text-gray-600 text-sm mt-3">Tap to view menu</p>
               </div>
             </Link>
           ))}
         </div>
+
+        {/* Show message if no vendors */}
+        {vendors.length === 0 && !loading && (
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">No approved vendors yet.</p>
+            <Link 
+              to="/onboard" 
+              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
+            >
+              Be the first vendor!
+            </Link>
+          </div>
+        )}
       </section>
-      <section id="vendor-form" className="py-16 bg-gray-50">
+      {/* <section id="vendor-form" className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-2xl font-bold text-center mb-6">Become a Virtual Kitchen</h2>
           <p className="text-center text-gray-600 mb-8">
@@ -189,7 +218,7 @@ useEffect(() => {
             </button>
           </form>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

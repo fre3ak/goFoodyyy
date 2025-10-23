@@ -24,6 +24,17 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }, []);
 
+    // Generic login method for the header dropdown
+    const login = (userData, type, token) => {
+      setUser(userData);
+      setUserType(type);
+      
+      // Store in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('userType', type);
+      localStorage.setItem('userData', JSON.stringify(userData));
+    };
+
     // Admin Login
     const adminLogin = async (email, password) => {
       try {
@@ -152,6 +163,7 @@ export function AuthProvider({ children }) {
         vendorLogin,
         adminSignup,
         vendorSignup,
+        login,
         logout,
         loading
       };

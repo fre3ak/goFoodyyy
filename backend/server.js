@@ -26,15 +26,35 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',
   'https://gofoodyyy.netlify.app',
-  'https://gofoodyyy.onrender.com'
+  'https://gofoodyyy.onrender.com',
+  'https://main--gofoodyyy.netlify,app',
+  'https://deploy-preview-*--gofoodyyy.netlify.app'
 ];
 
-// Simplified Cors
+// CORS configuration
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin 
+    if (!origin) return callback(null, true);
+
+    // Check if origin is in allowed list or matches pattern
+    if (allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        const pattern = new RegExp(allowed.replace('*', '.*'));
+        return pattern.test(origin);
+      }
+      return allowed === origin;
+    })) {
+      return callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
   credentials: true,
-  // methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requsted-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requsted-With']
 }));
 
 app.use(express.json({ limit: '10mb' }));

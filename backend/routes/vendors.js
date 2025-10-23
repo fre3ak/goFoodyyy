@@ -3,9 +3,9 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs-extra');
-const db = require('../models'); // ✅ Fixed import
-const Vendor = db.Vendor;        // ✅ Get from db object
-const Product = db.Product;      // ✅ Get from db object
+const db = require('../models'); 
+const Vendor = db.Vendor;        
+const Product = db.Product;      
 const sendEmail = require('../utils/sendEmail');
 console.log('sendEmail imported:', typeof sendEmail);
 console.log('sendEmail function:', sendEmail);
@@ -28,23 +28,50 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// DEBUG ROUTE - Checks all vendors and their status
+router.get('/debug/all-vendors', async (req, res) => {
+  try {
+    const allVendors = await Vendor.findAll({
+      attributes: ['id', 'vendorName', 'vendorSlug', 'status', 'isActive', 'createdAt']
+    });
+
+    console.log('All vendors in database:', allVendors.map(v => ({
+      name: v.vendorName,
+      slug: v.vendorSlug,
+      status: v.status,
+      active: v.isActive
+    })));
+
+    res.json({
+      totalVendors: allVendors.length,
+      vendors: allVendors,
+      statusCount: {
+        pending: allVendors.filter(v => v.status === 'pending').length,
+        approved: allVendors.filter(v => v.status === 'approved').length,
+        suspended: allVendors.filter(v => v.status === 'suspend').length
+      }
+    });
+  } catch (err) {
+    console.error('Debug vendors error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/vendors/approved - Get only approved vendors
 router.get('/approved', async (req, res) => {
   try {
     const vendors = await Vendor.findAll({
-      where: { status: 'approved' },
-      attributes: ['vendorName', 'vendorSlug']
+      where: { status: 'approved', isActive: true },
+      attributes: ['id', 'vendorName', 'vendorSlug', 'email', 'phone', 'state', 'city', 'logoUrl', 'openingHours', 'delivery', 'pickup']
     });
 
-    res.status(200).json(
-      vendors.map(v => ({
-        name: v.vendorName,
-        slug: v.vendorSlug
-      }))
-    );
+    console.log(`✅ Found ${vendors.length} approved vendors:`, vendors.map(v => v.vendorName));
+
+    // Return the full vendor objects, not just name/slug
+    res.status(200).json(vendors);
   } catch (err) {
     console.error('Failed to fetch approved vendors:', err);
-    res.status(500).json({ error: 'Could not load vendors' });
+    res.status(500).json({ error: 'Could not load vendors:' + err.message });
   }
 });
 
@@ -88,6 +115,37 @@ router.get('/all/vendors', async (req, res) => {
   } catch (error) {
     console.error('Error fetching vendors:', error);
     res.status(500).json({ error: 'Failed to fetch vendors' });
+  }
+});
+
+// MANUAL APPROVAL: Force approve a vendor (for testing)
+router.put('/:vendorSlug/force-approve', async (req, res) => {
+  try {
+    const { vendorSlug } = req.params;
+    const vendor = await Vendor.findOne({ where: { vendorSlug } });
+
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+
+    // Force approve
+    await vendor.update({
+      status: 'approved',
+      isActive: true
+    });
+
+    console.log(`✅ Manually approved vendor: ${vendor.vendorName}`);
+
+    res.json({ 
+      message: 'Vendor manually approved successfully', 
+      vendor: {
+        id: vendor.id,
+        vendorName: vendor.vendorName,
+        vendorSlug: vendor.vendorSlug,
+        status: vendor.status
+      }
+    });
+  } catch (err) {
+    console.error('Error force-approving vendor:', err);
+    res.status(500).json({ error: 'Failed to approve vendor'});
   }
 });
 
@@ -264,7 +322,7 @@ router.post('/onboard', upload.fields([
       phone,
       email,
       password_hash: password_hash,
-      bankName: bank, // ✅ Fixed: your model expects 'bankName' but frontend sends 'bank'
+      bankName: bank, // model expects 'bankName' but frontend sends 'bank'
       accountName,
       accountNumber,
       delivery: !!delivery,
