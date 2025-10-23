@@ -1,7 +1,7 @@
 // pages/VendorPage.jsx
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { use } from 'react';
 
@@ -53,10 +53,13 @@ function VendorPage() {
             <p className="text-sm text-gray-500 mb-3">{product.description}</p>
 
             <button
-              onClick={() => addToCart(product)}
+              onClick={() => {
+                addToCart(product);
+                setAdded(true);
+              }}
               className="btn-primary w-full"
             >
-              Add to Cart
+              {added ? '✅ Item Added!' : 'Add to Cart'}
             </button>
             <button
               onClick={() => window.location.href = `/product/${product.id}`}

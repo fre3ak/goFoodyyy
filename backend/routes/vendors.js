@@ -28,19 +28,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Return only approved vendors
-// router.get('/', async (req, res) => {
-//   try {
-//     const vendors = await Vendor.findAll({
-//       where: { status: 'approved' }
-//     });
-//     res.status(200).json(vendors);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
 // GET /api/vendors/approved - Get only approved vendors
 router.get('/approved', async (req, res) => {
   try {
@@ -72,19 +59,6 @@ router.get('/all/vendors', async (req, res) => {
   }
 });
 
-// Route to get only approved vendors
-// router.get('/', async (req, res) => {
-//   try {
-//     const vendors = await Vendor.findAll({
-//       where: { status: 'approved' } // Only show approved vendors
-//     });
-//     res.status(200).json(vendors);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error'});
-//   }
-// });
-
 // GET /api/vendors/:vendorSlug
 router.get('/:vendorSlug', async (req, res) => {
   try {
@@ -101,6 +75,19 @@ router.get('/:vendorSlug', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all vendors (for admin)
+router.get('/all/vendors', async (req, res) => {
+  try {
+    const vendors = await db.Vendor.findAll({
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(vendors);
+  } catch (error) {
+    console.error('Error fetching vendors:', error);
+    res.status(500).json({ error: 'Failed to fetch vendors' });
   }
 });
 
@@ -153,8 +140,75 @@ router.put('/:vendorSlug/approve', async (req, res) => {
       emailSent: !emailResult.error
     });
   } catch (err) {
-    console.error('Approval error:', err);
-    res.status(500).json({ error: 'Server error'});
+    console.error('Error approving vendor:', err);
+    res.status(500).json({ error: 'Failed to approve vendor'});
+  }
+});
+
+// Suspend vendor route
+router.put('/:vendorSlug/suspend', async (req, res) => {
+  try {
+    const { vendorSlug } = req.params;
+    const vendor = await db.Vendor.findOne({ where: { vendorSlug } });
+
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    await vendor.update({
+      status: 'suspended',
+      isActive: false
+    });
+
+    res.json({ 
+      message: 'Vendor suspended successfully', 
+      vendor: vendor.toJSON()
+    });
+  } catch (error) {
+    console.error('Error suspending vendor:', error);
+    res.status(500).json({ message: 'Failed to suspend vendor' });
+  }
+});
+
+// Delete vendor route  
+router.delete('/:vendorSlug/delete', async (req, res) => {
+  try {
+    const { vendorSlug } = req.params;
+    const vendor = await db.Vendor.findOne({ where: { vendorSlug } });
+
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    await vendor.destroy();
+
+    res.json({ 
+      message: 'Vendor deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting vendor:', error);
+    res.status(500).json({ message: 'Error deleting vendor' });
+  }
+});
+
+// Get vendors by state (for homepage categorization)
+router.get('/state/:state', async (req, res) => {
+  const { state } = req.params;
+
+  try {
+    const vendors = await Vendor.findAll({
+      where: { 
+        state,
+        status: 'approved',
+        isActive: true
+      },
+      order: [['vendorName', 'ASC']]
+    });
+
+    res.json(vendors);
+  } catch (error) {
+    console.error('Error fetching vendors by state:', error);
+    res.status(500).json({ message: 'Error fetching vendors by state' });
   }
 });
 
@@ -172,6 +226,7 @@ router.post('/onboard', upload.fields([
       vendorSlug: rawVendorSlug,
       phone,
       email,
+      password,
       bank,
       accountName,
       accountNumber,
@@ -199,12 +254,16 @@ router.post('/onboard', upload.fields([
 
     // Handle menu images
     const menuImageFiles = req.files && req.files['menuImages'] ? req.files['menuImages'] : [];
+    const bcrypt = require('bcryptjs');
+    const saltRounds = 10;
+    const password_hash = await bcrypt.hash(password, saltRounds);
 
     const vendor = await Vendor.create({
       vendorName,
       vendorSlug,
       phone,
       email,
+      password_hash: password_hash,
       bankName: bank, // ✅ Fixed: your model expects 'bankName' but frontend sends 'bank'
       accountName,
       accountNumber,

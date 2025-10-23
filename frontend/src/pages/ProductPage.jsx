@@ -1,7 +1,7 @@
 // src/pages/ProductPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -53,10 +53,12 @@ function ProductPage() {
         onClick={() => {
           addToCart(product);
           setAdded(true);
+          // Reset after 2 seconds
+          setTimeout(() => setAdded(false), 2000);
         }}
         className='btn-primary w-full'
       >
-        {added ? 'Added!' : 'Add to Cart'}
+        {added ? '✅ Item Added!' : 'Add to Cart'}
       </button>
 
       {/* Show "Go to Cart" only after adding */}

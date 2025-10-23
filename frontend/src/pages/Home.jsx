@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://gofoodyyy.onrender.com';
 

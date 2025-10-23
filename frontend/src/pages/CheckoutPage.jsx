@@ -1,12 +1,12 @@
 // src/pages/CheckoutPage.jsx
 import React, { useState, useEffect } from "react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 function CheckoutPage() {
-    const { cart } = useCart();
+    const { cart, clearCart } = useCart();
     const navigate = useNavigate();
 
     // Add state for customer details
@@ -87,6 +87,7 @@ function CheckoutPage() {
             }
 
             alert('Order created successfully! Check your email for receipt.');
+            clearCart();
             navigate('/');
           } catch (error) {
             console.error('Order creation failed:', error);

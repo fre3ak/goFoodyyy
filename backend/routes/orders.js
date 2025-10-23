@@ -7,6 +7,32 @@ const { createOrder } = require('../controllers/orderController');
 const sendReceiptEmail = require('../utils/sendReceiptEmail');
 const { where } = require('sequelize');
 
+// Get all orders (for admin)
+router.get('/', async (req, res) => {
+  try {
+    const orders = await db.Order.findAll({
+      include: [
+        {
+          model: db.Vendor,
+          as: 'Vendor',
+          attributes: ['vendorName', 'vendorSlug']
+        },
+        {
+          model: db.User,
+          as: 'User',
+          attributes: ['name', 'email', 'phone']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const orders = await Order.findAll({
@@ -62,6 +88,28 @@ router.post('/', async (req, res) => {
 
     console.log('✅ Order created in database with ID:', order.id);
 
+// Get orders for specific vendor
+router.get('/vendor/:vendorSlug', async (req, res) => {
+  const { vendorSlug } = req.params;
+
+  try {
+    const orders = await Order.findAll({
+      include: [{
+        model: Vendor,
+        where: { vendorSlug },
+        attributes: ['vendorName', 'vendorSlug'],
+        required: true
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching vendor orders:', error);
+    res.status(500).json({ message: 'Error fetching vendor orders' });
+  }
+});
+
     // Find vendor for receipt
     // const vendor = await Vendor.findOne({ where: { vendorSlug } });
 
@@ -70,16 +118,19 @@ router.post('/', async (req, res) => {
       const vendor = await Vendor.findOne({ where: { vendorSlug } });
       if (customerEmail && vendor) {
         console.log('📧 Attempting to send receipt to:', customerEmail);
-          await sendReceiptEmail(customerEmail, {
+          const emailResult = await sendReceiptEmail(customerEmail, {
             orderId: order.id,
             vendor: vendor,
             items: items,
             total: total,
             paymentRef: `GOFOOD${order.id}`
           });
-          console.log('✅ Receipt email sent successfully');
-        } else if (!customerEmail) {
-          console.log('ℹ️ No customer email provided, skipping email');
+
+          if (emailResult.error) {
+           console.log('⚠️ Receipt email failed but order was created:', emailResult.error);
+        } else {
+          console.log('✅ Receipt email sent:', emailResult.emailId);
+        } 
         } else {
           console.log('❌ Vendor not found for slug:', vendorSlug);
         }

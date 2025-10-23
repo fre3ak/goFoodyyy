@@ -1,24 +1,32 @@
 // models/Orders.js
 module.exports = (sequelize, DataTypes) => {
    const Order = sequelize.define('Order', {
+      id: {
+         type: DataTypes.INTEGER,
+         primaryKey: true,
+         autoIncrement: true
+      },
       customerId: {
          type: DataTypes.STRING,
-         allowNull: true, // could be from sessi
+         allowNull: true,
       },
       customerName: {
          type: DataTypes.STRING,
          allowNull: false,
+         field: 'customer_name'
       },
       customerEmail: {
          type: DataTypes.STRING,
-         allowNull: true,
+         allowNull: false,
+         field: 'customer_email',
          validate: {
-            isEmail: true, // ensures the email format is valid
-         },
+            isEmail: true,
+         }
       },
       customerPhone: {
          type: DataTypes.STRING,
-         allowNull: true,
+         allowNull: false,
+         field: 'customer_phone'
       },
       deliveryAddress: {
          type: DataTypes.TEXT,
@@ -37,8 +45,9 @@ module.exports = (sequelize, DataTypes) => {
          allowNull: false,
       },
       items: {
-         type: DataTypes.JSON, // to store array of items [{ productId, name, price, quantity }]
+         type: DataTypes.JSONB, // to store array of items [{ productId, name, price, quantity }]
          allowNull: false,
+         defaultValue: [],
          validate: {
             notEmpty: true, // ensures items array is not empty
          },
@@ -60,20 +69,38 @@ module.exports = (sequelize, DataTypes) => {
          type: DataTypes.STRING,
          allowNull: false,
          defaultValue: 'bank_transfer', // default payment method is 'bank'
+         field: 'payment_method'
       },
       status: {
-         type: DataTypes.STRING,
+         type: DataTypes.ENUM('pending', 'paid', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'),
          allowNull: false,
          defaultValue: 'pending', // default status is 'pending'
-         validate: { isIn: [['pending', 'paid', 'preparing', 'out_for_delivery', 'delivered', 'cancelled']]}
+      },
+      paymentStatus: {
+         type: DataTypes.ENUM('pending', 'paid', 'failed'),
+         defaultValue: 'pending',
+         field: 'payment_status'
       },
       notes: {
          type: DataTypes.TEXT,
          allowNull: true,
       },
+      vendorId: {
+         type: DataTypes.INTEGER,
+         allowNull: false,
+         field: 'vendor_id'
+      },
       userAgent: {
          type: DataTypes.TEXT,
          allowNull: true,
+      },
+      createdAt: {
+         type: DataTypes.DATE,
+         field: 'created_at'
+      },
+      updatedAt: {
+         type: DataTypes.DATE,
+         field: 'updated_at'
       },
       userIp: {
          type: DataTypes.STRING,
@@ -85,10 +112,19 @@ module.exports = (sequelize, DataTypes) => {
       },
       cookies: {
          type: DataTypes.TEXT, // storing as JSON string
-         allowNull: true,
+         allowNull: true
       }
    }, {
+      tableName: 'orders',
       timestamps: true, // automatically adds createdAt and updatedAt
-    });
-    return Order;
+   });
+
+   Order.associate = (models) => {
+      Order.belongsTo(models.Vendor, {
+         foreignKey: 'vendorId',
+         as: 'Vendor'
+      });
+   };
+
+   return Order;
 };
