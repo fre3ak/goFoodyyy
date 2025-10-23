@@ -14,32 +14,41 @@ const useNigerianBanks = () => {
     const fetchBanks = async () => {
       try {
         const response = await fetch(BANKS_API_URL);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
+
+        console.log('Banks API response:', result);
 
         if (Array.isArray(result)) {
           // Sort banks alphabetically
-          const sortedBanks = result.data
+          const sortedBanks = result
+            .map(bank => ({
+              name: bank.name,
+              code: bank.code,
+              slug: bank.slug
+            }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
           setBanks(sortedBanks);
+          console.log('Processed banks:', sortedBanks.length);
         } else {
-          setBanksError('Failed to load banks list');
-          // Fallback list if API fails
-          setBanks([
-            'Access Bank', 'Citibank', 'Ecobank', 'Fidelity Bank','First Bank', 'First City Monument Bank (FCMB)', 'Globus Bank', 'Guaranty Trust Bank (GTBank)', 'Heritage Bank', 'Jaiz Bank', 'Keystone Bank', 'Kuda Bank', 'Opay','PalmPay', 'Parallex Bank', 'Polaris Bank', 'Providus Bank','Stanbic IBTC Bank', 'Standard Chartered', 'Sterling Bank','Suntrust Bank', 'Taj Bank', 'Titan Trust Bank', 'Union Bank','United Bank for Africa (UBA)', 'Unity Bank', 'VFD Microfinance Bank', 'Wema Bank', 'Zenith Bank'
-          ]);
+          throw new Error('Unexpected API response format');
         }
       } catch (error) {
         console.error('Error fetching banks:', error);
-        setBanksError('Error loading banks. Using default list.');
-        // Fallback banks
+        setBanksError('Failed to load banks. Using default list.');
+        // Fallback list if API fails
         setBanks([
           'Access Bank', 'Citibank', 'Ecobank', 'Fidelity Bank','First Bank', 'First City Monument Bank (FCMB)', 'Globus Bank', 'Guaranty Trust Bank (GTBank)', 'Heritage Bank', 'Jaiz Bank', 'Keystone Bank', 'Kuda Bank', 'Opay','PalmPay', 'Parallex Bank', 'Polaris Bank', 'Providus Bank','Stanbic IBTC Bank', 'Standard Chartered', 'Sterling Bank','Suntrust Bank', 'Taj Bank', 'Titan Trust Bank', 'Union Bank','United Bank for Africa (UBA)', 'Unity Bank', 'VFD Microfinance Bank', 'Wema Bank', 'Zenith Bank'
-        ]);
-      } finally {
+          ]);
+        } finally {
           setBanksLoading(false);
-      }
-    };
+        }
+      };
 
       fetchBanks();
     }, []);

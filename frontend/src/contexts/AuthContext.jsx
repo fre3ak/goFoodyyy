@@ -38,6 +38,8 @@ export function AuthProvider({ children }) {
     // Admin Login
     const adminLogin = async (email, password) => {
       try {
+        console.log('🔐 Admin login attempt for:', email);
+
         const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/admin/login`, {
             method: 'POST',
             headers: {
@@ -47,6 +49,7 @@ export function AuthProvider({ children }) {
         });
 
         const data = await response.json();
+        console.log('🔐 Admin login response:', data);
 
         if (response.ok) {
           localStorage.setItem('token', data.token);
@@ -54,13 +57,31 @@ export function AuthProvider({ children }) {
           localStorage.setItem('userData', JSON.stringify(data.admin));
           setUser(data.admin);
           setUserType('admin');
+
+          console.log('✅ Admin login successful, redirecting to dashboard...');
           return { success: true, data: data.admin };
         } else {
-          return { success: false, error: data.message };
+          console.error('❌ Admin login failed:', data.message);
+          return { success: false, error: data.message || 'Login failed' };
         }
        } catch (error) {
-          return { success: false, error: 'Login failed. Please try again.' };
+          console.error('🚫 Admin login network error:', error);
+          return { success: false, error: 'Network error. Please check your connection.' };
         }
+      };
+
+      // Also add this method to check authentication status:
+      const checkAuth = () => {
+        const token = localStorage.getItem('token');
+        const userType = localStorage.getItem('userType');
+        const userData = localStorage.getItem('userData');
+
+        if (token && userType && userData) {
+          setUser(JSON.parse(userData));
+          setUserType(userType);
+          return true;
+        }
+        return false;
       };
 
       // Vendor Login
@@ -165,6 +186,7 @@ export function AuthProvider({ children }) {
         vendorSignup,
         login,
         logout,
+        checkAuth,
         loading
       };
       
