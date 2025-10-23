@@ -152,14 +152,14 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use('*', (req, res, next) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+// app.use('*', (req, res, next) => {
+//   res.status(404).json({ error: 'Route not found' });
+// });
 
 // ALTERNATIVE FIX: If the above still fails, use this instead:
-// app.use((req, res, next) => {
-//   res.status(404).json({ error: 'Route not found: ' + req.originalUrl });
-// });
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Route not found: ' + req.originalUrl });
+});
 
 // Sync DB and start server - FIXED: Remove allowedOrigins reference
 sequelize.sync({ alter: true })
