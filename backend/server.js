@@ -58,7 +58,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'] // FIXED: X-Requsted-With -> X-Requested-With
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -92,7 +92,6 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
-    // REMOVED: origins: allowedOrigins - this was causing the error
   });
 });
 
@@ -126,9 +125,9 @@ app.get('/api/test-cors', (req, res) => {
 // Test RESEND route - FIXED: Add missing sendEmail import
 app.get('/api/test-resend', async (req, res) => {
   try {
-    const sendEmail = require('./utils/sendEmail'); // ADD THIS LINE
+    const sendEmail = require('./utils/sendEmail');
     const result = await sendEmail({
-      to: 'your-email@gmail.com', // Use your actual email
+      to: 'saeedumar5@gmail.com', // Use your actual email
       subject: 'Resend Test from goFoodyyy',
       html: '<h1>Resend Test</h1><p>If you receive this, Resend is working perfectly!</p>'
     });
@@ -153,9 +152,14 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req, res, next) => {
   res.status(404).json({ error: 'Route not found' });
 });
+
+// ALTERNATIVE FIX: If the above still fails, use this instead:
+// app.use((req, res, next) => {
+//   res.status(404).json({ error: 'Route not found: ' + req.originalUrl });
+// });
 
 // Sync DB and start server - FIXED: Remove allowedOrigins reference
 sequelize.sync({ alter: true })
