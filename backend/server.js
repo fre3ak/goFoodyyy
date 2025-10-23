@@ -1,4 +1,4 @@
-// server.js
+// server.js - COMPLETE FIXED VERSION
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs-extra');
@@ -23,30 +23,22 @@ Order.belongsTo(Product);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// const allowedOrigins = [
-//   'http://localhost:5173',
-//   'https://gofoodyyy.netlify.app',
-//   'https://gofoodyyy.onrender.com',
-//   'https://main--gofoodyyy.netlify,app',
-//   'https://deploy-preview-*--gofoodyyy.netlify.app'
-// ];
+// DEFINE allowedOrigins HERE - THIS WAS MISSING!
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://gofoodyyy.netlify.app',
+  'https://gofoodyyy.onrender.com',
+  'https://main--gofoodyyy.netlify.app',
+  'https://deploy-preview-*--gofoodyyy.netlify.app'
+];
 
-// CORS configuration
+// FIXED CORS Configuration
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin 
+    // Allow requests with no origin (like mobile apps, Postman, server-to-server)
     if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000', 
-      'https://gofoodyyy.netlify.app',
-      'https://main--gofoodyyy.netlify.app',
-      'https://deploy-preview-*--gofoodyyy.netlify.app',
-      'https://gofoodyyy.onrender.com'
-    ];
-
-    // Check if origin is in allowed list or matches pattern
+    
+    // Check if origin matches any allowed pattern
     const isAllowed = allowedOrigins.some(allowed => {
       if (allowed.includes('*')) {
         const regex = new RegExp('^' + allowed.replace('*', '.*') + '$');
@@ -60,19 +52,22 @@ app.use(cors({
     } else {
       console.log('🚫 CORS BLOCKED ORIGIN:', origin);
       console.log('✅ ALLOWED ORIGINS:', allowedOrigins);
-      // For now, allow all in development - tightn in production
+      // For now, allow all in development - tighten in production
       callback(null, true);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requsted-With', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-//Serve static files (so images are accessible)
+// Serve static files (so images are accessible)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Routes
@@ -87,8 +82,9 @@ app.get('/', (req, res) => {
     <h1>Marketplace API is Running!</h1>
     <ul>
       <li><a href="/api/products">View Products</a></li>
-      <li><a href="/api/health"Health Check</a></li>
+      <li><a href="/api/health">Health Check</a></li>
       <li><a href="/api/test-cors">Test CORS</a></li>
+      <li><a href="/api/vendors/debug/all-vendors">Debug Vendors</a></li>
     </ul>
   `);
 });
@@ -100,7 +96,7 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    origins: allowedOrigins
+    origins: allowedOrigins // NOW THIS WILL WORK!
   });
 });
 
@@ -111,26 +107,67 @@ app.get('/api/test-cors', (req, res) => {
     allowedOrigin: req.headers.origin,
     timestamp: new Date().toISOString(),
     yourOrigin: req.headers.origin,
-    isAllowed: allowedOrigins.includes(req.headers.origin)
+    isAllowed: allowedOrigins.includes(req.headers.origin) // NOW THIS WILL WORK!
   });
 });
 
-// Test RESEND routex
-app.get('/api/test-resend', async (req, res) => {
+// Database Seeding Route - CREATE SAMPLE VENDORS
+app.post('/api/seed/vendors', async (req, res) => {
   try {
-    const result = await sendEmail({
-      to: 'your-email@gmail.com', // Use your actual email
-      subject: 'Resend Test from goFoodyyy',
-      html: '<h1>Resend Test</h1><p>If you receive this, Resend is working perfectly!</p>'
-    });
-    
-    res.json({ 
-      success: !result.error,
-      message: result.error ? 'Email failed' : 'Email sent successfully',
-      details: result
+    const bcrypt = require('bcryptjs');
+    const sampleVendors = [
+      {
+        vendorName: "Tasty Bites Restaurant",
+        vendorSlug: "tasty-bites",
+        email: "tastybites@example.com",
+        phone: "+2348012345678",
+        passwordHash: await bcrypt.hash("password123", 10),
+        state: "Lagos",
+        city: "Ikeja",
+        bankName: "Guaranty Trust Bank",
+        accountName: "Tasty Bites Enterprises",
+        accountNumber: "1234567890",
+        status: "approved",
+        isActive: true,
+        delivery: true,
+        pickup: true,
+        openingHours: "Mon-Sun 8AM-10PM"
+      },
+      {
+        vendorName: "Spicy Kitchen",
+        vendorSlug: "spicy-kitchen", 
+        email: "spicykitchen@example.com",
+        phone: "+2348023456789",
+        passwordHash: await bcrypt.hash("password123", 10),
+        state: "Lagos", 
+        city: "Victoria Island",
+        bankName: "Access Bank",
+        accountName: "Spicy Kitchen Ltd",
+        accountNumber: "2345678901",
+        status: "approved",
+        isActive: true,
+        delivery: true,
+        pickup: false,
+        openingHours: "Mon-Sat 9AM-9PM"
+      }
+    ];
+
+    // Clear existing vendors and create new ones
+    await db.Vendor.destroy({ where: {} });
+    const createdVendors = await db.Vendor.bulkCreate(sampleVendors);
+
+    res.json({
+      message: 'Sample vendors created successfully!',
+      vendors: createdVendors.map(v => ({
+        id: v.id,
+        name: v.vendorName,
+        slug: v.vendorSlug,
+        status: v.status
+      }))
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Seed error:', error);
+    res.status(500).json({ error: 'Failed to seed vendors: ' + error.message });
   }
 });
 
@@ -144,17 +181,17 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-// app.use('*', (req, res) => {
-//   res.status(404).json({ error: 'Route not found' });
-// });
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
 // Sync DB and start server
 sequelize.sync({ alter: true })
   .then(() => {
     console.log('✅ Database synced');
     console.log('📋 Models:', Object.keys(db));
-    console.log('🌍 CORS enabled for:', allowedOrigins);
-    app.listen(PORT, () => {
+    console.log('🌍 CORS enabled for:', allowedOrigins); // NOW THIS WILL WORK!
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   })
