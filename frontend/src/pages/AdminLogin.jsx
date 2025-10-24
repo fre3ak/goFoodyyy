@@ -39,6 +39,8 @@ function AdminLogin() {
       const data = await response.json();
 
       if (response.ok) {
+        console.log('✅ Login successful, storing data...');
+        console.log('👤 Admin data:', data.admin);
         // Store admin data and token
         localStorage.setItem('userData', JSON.stringify(data.admin));
         localStorage.setItem('token', data.token);

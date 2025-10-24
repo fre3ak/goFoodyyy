@@ -175,6 +175,9 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('userType');
         localStorage.removeItem('userData');
         localStorage.removeItem('adminData');
+
+        // Redirect to login
+        window.location.href = '/admin-login';
         setUser(null);
         setUserType(null);
       };
