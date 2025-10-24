@@ -174,6 +174,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('userType');
         localStorage.removeItem('userData');
+        localStorage.removeItem('adminData');
         setUser(null);
         setUserType(null);
       };
