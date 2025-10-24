@@ -16,9 +16,10 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem('token');
       const storedUserType = localStorage.getItem('userType');
       const userData = localStorage.getItem('userData');
+      const adminData = localStorage.getItem('adminData');
 
-      if (token && storedUserType && userData) {
-        setUser(JSON.parse(userData));
+      if (token && storedUserType && userData || adminData) {
+        setUser(JSON.parse(userData || adminData));
         setUserType(storedUserType);
       }
       setLoading(false);

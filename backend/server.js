@@ -29,32 +29,34 @@ app.use(cors({
     // Allow requests with no origin 
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000', 
-      'https://gofoodyyy.netlify.app',
-      'https://main--gofoodyyy.netlify.app',
-      'https://deploy-preview-*--gofoodyyy.netlify.app',
-      'https://gofoodyyy.onrender.com'
-    ];
+    // const allowedOrigins = [
+    //   'http://localhost:5173',
+    //   'http://localhost:3000', 
+    //   'https://gofoodyyy.netlify.app',
+    //   'https://main--gofoodyyy.netlify.app',
+    //   'https://deploy-preview-*--gofoodyyy.netlify.app',
+    //   'https://gofoodyyy.onrender.com'
+    // ];
 
-    // Check if origin is in allowed list or matches pattern
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
-        const regex = new RegExp('^' + allowed.replace('*', '.*') + '$');
-        return regex.test(origin);
-      }
-      return allowed === origin;
-    });
+    // // Check if origin is in allowed list or matches pattern
+    // const isAllowed = allowedOrigins.some(allowed => {
+    //   if (allowed.includes('*')) {
+    //     const regex = new RegExp('^' + allowed.replace('*', '.*') + '$');
+    //     return regex.test(origin);
+    //   }
+    //   return allowed === origin;
+    // });
 
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log('🚫 CORS BLOCKED ORIGIN:', origin);
-      console.log('✅ ALLOWED ORIGINS:', allowedOrigins);
-      // For now, allow all in development - tighten in production
-      callback(null, true);
-    }
+    // if (isAllowed) {
+    //   callback(null, true);
+    // } else {
+    //   console.log('🚫 CORS BLOCKED ORIGIN:', origin);
+    //   console.log('✅ ALLOWED ORIGINS:', allowedOrigins);
+    //   // For now, allow all in development - tighten in production
+    //   callback(null, true);
+    // }
+    console.log('🌍 Incoming request from origin:', origin);
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

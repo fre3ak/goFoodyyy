@@ -40,7 +40,7 @@ function AdminLogin() {
 
       if (response.ok) {
         // Store admin data and token
-        localStorage.setItem('adminData', JSON.stringify(data.admin));
+        localStorage.setItem('userData', JSON.stringify(data.admin));
         localStorage.setItem('token', data.token);
         localStorage.setItem('userType', 'admin');
         
