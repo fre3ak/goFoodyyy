@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Store, Mail, Lock, ArrowRight } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 function VendorLogin() {
+  const { vendorLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -28,29 +30,16 @@ function VendorLogin() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/vendor/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      const result = await vendorLogin(formData.email, formData.password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store vendor data and token
-        localStorage.setItem('vendorData', JSON.stringify(data.vendor));
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userType', 'vendor');
-        
-        // Redirect to vendor dashboard
+      if (result.success) {
         navigate('/vendor/dashboard');
       } else {
-        setError(data.message || 'Login failed');
+        setError(result.error || 'Login failed');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      console.error('Vendor login submit error:', err);
+      setError(err.message || 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }

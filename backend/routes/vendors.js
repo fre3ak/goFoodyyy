@@ -1,29 +1,31 @@
 // backend/routes/vendors.js
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs-extra');
-const db = require('../models'); 
-const Vendor = db.Vendor;        
-const Product = db.Product;      
-const sendEmail = require('../utils/sendEmail');
-console.log('sendEmail imported:', typeof sendEmail);
-console.log('sendEmail function:', sendEmail);
+import { Router } from 'express';
+import multer, { diskStorage } from 'multer';
+import { join, extname, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs-extra';
+import db from '../models/index.js';
+import bcrypt from 'bcryptjs';
+import sendEmail from '../utils/sendEmail.js';
 
-const router = express.Router();
+const { Vendor, Product } = db;
 
+const router = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+const uploadDir = join(__dirname, '..', 'public', 'uploads');
 fs.ensureDirSync(uploadDir);
 
 // Configure multer
-const storage = multer.diskStorage({
+const storage = diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
   }
 });
 const upload = multer({ storage });
@@ -75,17 +77,6 @@ router.get('/approved', async (req, res) => {
   }
 });
 
-// All vendor for admin
-router.get('/all/vendors', async (req, res) => {
-  try {
-    const vendors = await Vendor.findAll();
-    res.status(200).json(vendors);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // GET /api/vendors/:vendorSlug
 router.get('/:vendorSlug', async (req, res) => {
   try {
@@ -105,10 +96,10 @@ router.get('/:vendorSlug', async (req, res) => {
   }
 });
 
-// Get all vendors (for admin)
+// Get all vendors (for admin) - This was a duplicate route, now it's the single source.
 router.get('/all/vendors', async (req, res) => {
   try {
-    const vendors = await db.Vendor.findAll({
+    const vendors = await Vendor.findAll({
       order: [['createdAt', 'DESC']]
     });
     res.json(vendors);
@@ -207,7 +198,7 @@ router.put('/:vendorSlug/approve', async (req, res) => {
 router.put('/:vendorSlug/suspend', async (req, res) => {
   try {
     const { vendorSlug } = req.params;
-    const vendor = await db.Vendor.findOne({ where: { vendorSlug } });
+    const vendor = await Vendor.findOne({ where: { vendorSlug } });
 
     if (!vendor) {
       return res.status(404).json({ message: 'Vendor not found' });
@@ -232,7 +223,7 @@ router.put('/:vendorSlug/suspend', async (req, res) => {
 router.delete('/:vendorSlug/delete', async (req, res) => {
   try {
     const { vendorSlug } = req.params;
-    const vendor = await db.Vendor.findOne({ where: { vendorSlug } });
+    const vendor = await Vendor.findOne({ where: { vendorSlug } });
 
     if (!vendor) {
       return res.status(404).json({ message: 'Vendor not found' });
@@ -292,7 +283,10 @@ router.post('/onboard', upload.fields([
       pickup,
       openingHours
     } = req.body;
-
+    
+    // Destructure address fields separately as they might not be in every request
+    const { state, city, address } = req.body;
+    
     const vendorSlug = (rawVendorSlug || vendorName)
       .toLowerCase()
       .trim()
@@ -300,7 +294,10 @@ router.post('/onboard', upload.fields([
       .replace(/[^a-z0-9-]/g, '');
 
     if (!vendorName || !vendorSlug || !phone || !email || !bank || !accountName || !accountNumber) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: 'Missing required vendor information. Please fill out the entire form.' });
+    }
+    if (!state) {
+      return res.status(400).json({ error: 'State is a required field.' });
     }
 
     const existing = await Vendor.findOne({ where: { vendorSlug } });
@@ -312,24 +309,30 @@ router.post('/onboard', upload.fields([
 
     // Handle menu images
     const menuImageFiles = req.files && req.files['menuImages'] ? req.files['menuImages'] : [];
-    const bcrypt = require('bcryptjs');
     const saltRounds = 10;
-    const password_hash = await bcrypt.hash(password, saltRounds);
+
+    // Handle case where openingHours might be an array from FormData
+    const finalOpeningHours = Array.isArray(openingHours) ? openingHours[0] : openingHours;
+
+    const passwordHash = password ? await bcrypt.hash(password, saltRounds) : null;
 
     const vendor = await Vendor.create({
       vendorName,
       vendorSlug,
       phone,
       email,
-      password_hash: password_hash,
+      passwordHash: passwordHash,
       bankName: bank, // model expects 'bankName' but frontend sends 'bank'
       accountName,
       accountNumber,
       delivery: !!delivery,
       pickup: !!pickup,
-      logo,
+      state, // Add state to creation
+      city, // Add city
+      address, // Add address
+      logoUrl: logo,
       status: 'pending',
-      openingHours: openingHours || 'Mon-Fri 8AM–8PM'
+      openingHours: finalOpeningHours || 'Mon-Fri 8AM–8PM'
     });
 
     const menuItems = [];
@@ -351,6 +354,7 @@ router.post('/onboard', upload.fields([
         price,
         description,
         imageUrl,
+        vendorId: vendor.id, // CRITICAL: Associate product with the new vendor
         vendorName,
         vendorSlug,
         paymentMethod: 'bank'
@@ -416,4 +420,4 @@ router.post('/onboard', upload.fields([
   }
 });
 
-module.exports = router;
+export default router;

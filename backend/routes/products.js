@@ -1,13 +1,12 @@
 // routes/products.js
-const express = require('express');
-const db = require('../models');
-const Product = db.Product;
-const Vendor = db.Vendor;
+import { Router } from 'express';
+import db from '../models/index.js';
+const { Product, Vendor } = db;
 
-const router = express.Router();
+const router = Router();
 
 // Import controller functions
-const { getAllProducts, createProduct, getProductById } = require('../controllers/productController');
+import { getAllProducts, createProduct, getProductById } from '../controllers/productController.js';
 
 // ✅ Single source of truth for GET /api/products
 router.get('/', getAllProducts);
@@ -84,4 +83,4 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

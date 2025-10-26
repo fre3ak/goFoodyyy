@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { useNavigate } from 'react-router-dom';
-import { use } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -13,6 +11,7 @@ function VendorPage() {
   const [vendorProducts, setVendorProducts] = useState([]);
   const [vendorName, setVendorName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [addedProductId, setAddedProductId] = useState(null); // State to track which product was added
 
   useEffect(() => {
     fetch(`${API_BASE}/api/products?vendorSlug=${vendorSlug}`)
@@ -43,7 +42,7 @@ function VendorPage() {
           <div key={product.id} className="bg-white border rounded-lg p-4 shadow-sm">
             {product.imageUrl && (
               <img
-                src={`http://localhost:5000${product.imageUrl}`}
+                src={`${API_BASE}${product.imageUrl}`}
                 alt={product.name}
                 className="w-full h-40 object-cover rounded-lg mb-4"
               />
@@ -55,11 +54,14 @@ function VendorPage() {
             <button
               onClick={() => {
                 addToCart(product);
-                setAdded(true);
+                setAddedProductId(product.id);
+                setTimeout(() => setAddedProductId(null), 2000); // Reset after 2 seconds
               }}
               className="btn-primary w-full"
             >
-              {added ? '✅ Item Added!' : 'Add to Cart'}
+              {addedProductId === product.id
+                ? '✅ Added to Cart!'
+                : 'Add to Cart'}
             </button>
             <button
               onClick={() => window.location.href = `/product/${product.id}`}

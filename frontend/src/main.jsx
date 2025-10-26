@@ -7,8 +7,10 @@ import { CartProvider } from './contexts/CartContext.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <CartProvider>
-      <App />
-    </CartProvider>
+    {/* AuthProvider and ToastProvider are now in App.jsx */}
+    {/* CartProvider needs to wrap the App to provide cart context */}
+      <CartProvider>
+        <App />
+      </CartProvider>
   </React.StrictMode>
 );

@@ -1,7 +1,5 @@
-const { Vendor } = require(".");
-
 // models/Vendor.js
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Vendor = sequelize.define('Vendor', {
     id: {
       type: DataTypes.INTEGER,
@@ -33,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     passwordHash: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true, // Match migration and allow for different auth methods later
       field: 'password_hash'
     },
     state: {
@@ -51,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
     logoUrl: {
       type: DataTypes.STRING,
       allowNull: true,
-      field: 'logo_url'
+      field: 'logo_url' // This will be the single source for the logo path
     },
     bankName: {  
       type: DataTypes.STRING,
@@ -92,10 +90,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    logo: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at'
@@ -105,7 +99,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'updated_at'
     }
   }, {
-    tableName: 'Vendors',
+    tableName: 'vendors', // Use lowercase to match migrations
     timestamps: true,
     hooks: {
       beforeCreate: (Vendor) => {

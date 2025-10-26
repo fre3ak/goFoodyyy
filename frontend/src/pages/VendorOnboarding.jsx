@@ -192,7 +192,10 @@ function VendorOnboarding() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (!formData.state) setErrors(newErrors);
+    if (!formData.state) {
+      newErrors.state = "State is required"
+    }
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -313,6 +316,10 @@ function VendorOnboarding() {
   };
 
   const nextStep = () => {
+    console.log('🔄 Next button clicked, current step:', currentStep);
+
+    setErrors({});
+
     let isValid = true;
 
     switch (currentStep) {
@@ -322,14 +329,28 @@ function VendorOnboarding() {
       case 2:
         isValid = validateStep2();
         break;
+      case 3:
+        isValid = formData.delivery || formData.pickup;
+        console.log('✅ Step 3 validation:', isValid);
+        if (!isValid) {
+          setErrors({ submit: "Please select at least one service option"});
+        }
+        break;
       case 4:
+        isValid = true;
+        console.log('✅ Step 4 validation (always true):', isValid);
+        break;
+      case 5:
         isValid = validateStep4();
         break;
       default:
         isValid = true;
     }
 
+    console.log('📊 Validation result:', isValid);
+
     if (isValid) {
+      console.log('🚀 Moving to next step');
       setCurrentStep((prev) => prev + 1);
       window.scrollTo(0, 0);
     }
@@ -340,12 +361,46 @@ function VendorOnboarding() {
     window.scrollTo(0, 0);
   };
 
+  const validateFiles = () => {
+    const newErrors = {};
+
+    if (logo) {
+      const validLogoTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const maxLogoSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validLogoTypes.includes(logo.type)) {
+        newErrors.logo = "Logo must be a valid image format (JPG, PNG, WebP)";
+      }
+      if (logo.size > maxLogoSize) {
+        newErrors.logo = "Logo must be less than 5MB";
+      }
+    }
+
+    // Validate menu images
+    formData.menu.forEach((item, index) => {
+      if (item.image) {
+        const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+        const maxSize = 5 * 1024 * 1024;
+
+        if (!validTypes.includes(item.image.type)) {
+          newErrors[`menuImage${index}`] = `Menu item #${index + 1} image must be JPEG, PNG, or WebP`;
+        }
+        if (item.image.size > maxSize) {
+          newErrors[`menuImage${index}`] = `Menu item #${index + 1} image must be less than 5MB`;
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setloading(true);
-    setErrors("");
+    setErrors({});
 
-    if (!validateStep4()) {
+    if (!validateStep4() || !validateFiles()) {
       setloading(false);
       return;
     }
@@ -362,17 +417,21 @@ function VendorOnboarding() {
       "bank",
       "accountName",
       "accountNumber",
-      "openningHours",
+      "openingHours",
       "state",
       "city",
       "address",
     ];
 
     vendorFields.forEach((field) => {
-      if (formData[field]) {
+      if (formData[field] !== undefined && formData[field] !== null) {
         data.append(field, formData[field]);
       }
     });
+
+    if (formData.openingHours) {
+      data.append("openingHours", formData.openingHours);
+    }
 
     // Append service types
     data.append("delivery", formData.delivery);
@@ -382,32 +441,48 @@ function VendorOnboarding() {
     formData.menu.forEach((item, i) => {
       data.append(`menuName${i}`, item.name);
       data.append(`menuPrice${i}`, item.price);
-      data.append(`menuDescription${i}`, item.description || "");
+      if (item.description) {
+        data.append(`menuDescription${i}`, item.description || "");
+      }
     });
 
     // Append menu images
     formData.menu.forEach((item) => {
       if (item.image instanceof File) {
-        // console.log('Uploading:', item.image.name, item.image.size, item.image.type);
         data.append("menuImages", item.image);
       }
     });
 
     // Append logo
     if (logo instanceof File) {
-      // console.log('Uploading logo:', logo.name, logo.size);
       data.append("logo", logo);
     }
 
+    // Log FormData contents for debugging
+    console.log('📤 Sending form data:');
+    for (let pair of data.entries()) {
+      console.log(pair[0] + ': ', pair[1]);
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/vendors/onboard`, {
+      console.log('🚀 Sending request to:', `${API_BASE}/api/vendors/onboard`);
+
+      const response = await fetch(`${API_BASE}/api/vendors/onboard`, {
         method: "POST",
         body: data,
       });
 
-      const result = await res.json();
+      console.log('📨 Response status:', response.status);
 
-      if (res.ok) {
+      let result;
+      try {
+        result = await response.json();
+        console.log('📦 Response data:', result);
+      } catch (jsonError) {
+        console.error('❌ Failed to parse JSON response:', jsonError);
+      }
+
+      if (response.ok) {
         setSuccess(
           "Application submitted successfully! You will receive a confirmation email shortly."
         );
@@ -415,13 +490,15 @@ function VendorOnboarding() {
           navigate("/vendor-login");
         }, 3000);
       } else {
+        console.error('❌ Server error response:', result);
         setErrors({
-          submit: result.error || "Something went wrong. Please try again.",
+          submit: result?.error || result?.message || `An unexpected server error occurred: ${response.status}`,
         });
       }
     } catch (err) {
+      console.error('🚫 Network error:', err);
       setErrors({
-        submit: "Network error. Please check your connection and try again.",
+        submit: err.message || "Network error. Please check your connection and try again.",
       });
     } finally {
       setloading(false);
@@ -429,7 +506,7 @@ function VendorOnboarding() {
   };
 
   // Progress percentage
-  const progress = ((currentStep - 1) / 4) * 100;
+  const progress = ((currentStep - 1) / 5) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -727,7 +804,7 @@ function VendorOnboarding() {
                     name="bank"
                     value={formData.bank}
                     onChange={handleChange}
-                    className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focuss:ring-blue-500 focus:border-transparent ${
+                    className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.bank ? "border-red-500" : "border-gray-300"
                     }`}
                   >
@@ -739,6 +816,9 @@ function VendorOnboarding() {
                     ))}
                   </select>
                   {errors.bank && (
+                    <p className="mt-1 text-sm text-red-600">{errors.bank}</p>
+                  )}
+                  {banksError && (
                     <p className="mt-1 text-sm text-yellow-600">{banksError}</p>
                   )}
                 </div>

@@ -1,11 +1,10 @@
 // controllers/productController.js
-const db = require('../models');
-const Product = db.Product;
-const Vendor = db.Vendor;
+import db from '../models/index.js';
+const { Product, Vendor } = db;
 
 // Get all products
 // controllers/productController.js
-exports.getAllProducts = async (req, res) => {
+export async function getAllProducts(req, res) {
   const { vendorSlug } = req.query;
 
   try {
@@ -34,9 +33,9 @@ exports.getAllProducts = async (req, res) => {
       error: 'Failed to fetch products'
     });
   }
-};
+}
 
-exports.createProduct = async (req, res) => {
+export async function createProduct(req, res) {
   try {
     const { name, price, description, imageUrl, vendorName, paymentMethod } = req.body;
 
@@ -63,10 +62,10 @@ exports.createProduct = async (req, res) => {
       error: err.message 
     });
   }
-};
+}
 
 // Get a single product by ID
-exports.getProductById = async (req, res) => {
+export async function getProductById(req, res) {
   try {
     const { id } = req.params;
     const product = await Product.findByPk(id);
@@ -80,4 +79,4 @@ exports.getProductById = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch product', error: err.message });
   }
-};
+}

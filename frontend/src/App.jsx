@@ -1,11 +1,13 @@
 // frontend/src/App.jsx
 import {
   BrowserRouter as Router,
+  useNavigate,
   Route,
   Routes,
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import { useCart } from "./contexts/CartContext";
 import { Link } from "react-router-dom";
 import {
@@ -28,22 +30,25 @@ import CheckoutPage from "./pages/CheckoutPage";
 import VendorOnboarding from "./pages/VendorOnboarding";
 import VendorDashboard from "./pages/VendorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ToastContainer from "./components/ToastContainer";
 
 function AppContent() {
   const { user, userType, logout } = useAuth();
   const { cartQuantity } = useCart();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    const loggedOutUserType = userType;
+    logout(); // This will clear user state
     setUserMenuOpen(false);
-    // Redirect based on user type
-    if (userType === "admin") {
-      window.location.href = "/admin-login";
-    } else if (userType === "vendor") {
-      window.location.href = "/vendor-login";
+    // Use navigate for a smoother SPA experience
+    if (loggedOutUserType === "admin") {
+      navigate("/admin/login");
+    } else if (loggedOutUserType === "vendor") {
+      navigate("/vendor/login");
     } else {
-      window.location.href = "/";
+      navigate("/");
     }
   };
 
@@ -59,6 +64,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer />
       {/* Header */}
       <header className="bg-gradient-to-r from-orange-500 via-orange-400 to-red-500 text-white relative">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -390,11 +396,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Shield, Mail, Lock } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 function AdminLogin() {
+  const { adminLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -28,28 +30,12 @@ function AdminLogin() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('✅ Login successful, storing data...');
-        console.log('👤 Admin data:', data.admin);
-        // Store admin data and token
-        localStorage.setItem('userData', JSON.stringify(data.admin));
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userType', 'admin');
-        
-        // Redirect to admin dashboard
-        navigate('/admin/dashboard');
+      const result = await adminLogin(formData.email, formData.password);
+      
+      if (result.success) {
+          navigate('/admin/dashboard');
       } else {
-        setError(data.message || 'Login failed');
+        setError(result.error);
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -57,6 +43,37 @@ function AdminLogin() {
       setLoading(false);
     }
   };
+
+  //   try {
+  //     const response = await fetch(`${API_BASE}/api/auth/admin/login`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(formData)
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       console.log('✅ Login successful, storing data...');
+  //       console.log('👤 Admin data:', data.admin);
+  //       // Store admin data and token
+  //       localStorage.setItem('userData', JSON.stringify(data.admin));
+  //       localStorage.setItem('token', data.token);
+  //       localStorage.setItem('userType', 'admin');
+        
+  //       // Redirect to admin dashboard
+  //       navigate('/admin/dashboard');
+  //     } else {
+  //       setError(data.message || 'Login failed');
+  //     }
+  //   } catch (err) {
+  //     setError('Network error. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

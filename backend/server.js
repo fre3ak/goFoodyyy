@@ -1,18 +1,20 @@
 // server.js - FIXED VERSION
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs-extra');
-const path = require('path');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs-extra';
+import path from 'path';
+import 'dotenv/config';
+import { fileURLToPath } from 'url';
 
 // Ensure upload directory exists
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 fs.ensureDirSync(uploadDir);
 
-const sequelize = require('./config/db');
-const db = require('./models'); // Import the models index
-const vendorRoutes = require('./routes/vendors');
-const productRoutes = require('./routes/products');
+import db from './models/index.js'; // Import the models index
+import vendorRoutes from './routes/vendors.js';
+import productRoutes from './routes/products.js';
 
 const Product = db.Product;
 const Order = db.Order;
@@ -67,12 +69,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 //Serve static files (so images are accessible)
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', (await import('./routes/auth.js')).default);
 app.use('/api/products', productRoutes);
-app.use('/api/orders', require('./routes/orders'));
+app.use('/api/orders', (await import('./routes/orders.js')).default);
 app.use('/api/vendors', vendorRoutes);
 
 // Home route
@@ -101,7 +103,8 @@ app.get('/health', (req, res) => {
 app.get('/api/test-cors', (req, res) => {
   const allowedOrigins = [
     'http://localhost:5173',
-    'http://localhost:3000', 
+    'http://localhost:5000',
+    'http://localhost:3000',
     'https://gofoodyyy.netlify.app',
     'https://main--gofoodyyy.netlify.app',
     'https://deploy-preview-*--gofoodyyy.netlify.app',
@@ -127,7 +130,7 @@ app.get('/api/test-cors', (req, res) => {
 // Test RESEND route - FIXED: Add missing sendEmail import
 app.get('/api/test-resend', async (req, res) => {
   try {
-    const sendEmail = require('./utils/sendEmail');
+    const { default: sendEmail } = await import('./utils/sendEmail.js');
     const result = await sendEmail({
       to: 'saeedumar5@gmail.com', // Use your actual email
       subject: 'Resend Test from goFoodyyy',
@@ -164,7 +167,7 @@ app.use((req, res, next) => {
 });
 
 // Sync DB and start server - FIXED: Remove allowedOrigins reference
-sequelize.sync({ alter: true })
+db.sequelize.sync({ alter: true })
   .then(() => {
     console.log('✅ Database synced');
     console.log('📋 Models:', Object.keys(db));

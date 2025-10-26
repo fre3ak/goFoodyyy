@@ -1,5 +1,5 @@
 // db-sync.js - Run this once to set up database
-const db = require('./models');
+const db = require('./models').default;
 
 async function syncDatabase() {
   try {

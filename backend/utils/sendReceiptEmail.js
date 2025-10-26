@@ -1,5 +1,5 @@
 // backend/utils/sendReceiptEmail.js
-const sendEmail = require('./sendEmail');
+import sendEmail from './sendEmail.js';
 
 async function sendReceiptEmail(customerEmail, orderDetails) {
   try {
@@ -116,4 +116,4 @@ async function sendReceiptEmail(customerEmail, orderDetails) {
   }
 }
 
-module.exports = sendReceiptEmail;
+export default sendReceiptEmail;

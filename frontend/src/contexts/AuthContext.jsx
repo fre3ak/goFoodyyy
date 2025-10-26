@@ -16,31 +16,18 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem('token');
       const storedUserType = localStorage.getItem('userType');
       const userData = localStorage.getItem('userData');
-      const adminData = localStorage.getItem('adminData');
+      // const adminData = localStorage.getItem('adminData');
 
-      if (token && storedUserType && userData || adminData) {
-        setUser(JSON.parse(userData || adminData));
+      if (token && storedUserType && userData) {       
+        setUser(JSON.parse(userData));
         setUserType(storedUserType);
       }
       setLoading(false);
     }, []);
 
-    // Generic login method for the header dropdown
-    const login = (userData, type, token) => {
-      setUser(userData);
-      setUserType(type);
-      
-      // Store in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('userType', type);
-      localStorage.setItem('userData', JSON.stringify(userData));
-    };
-
     // Admin Login
     const adminLogin = async (email, password) => {
       try {
-        console.log('🔐 Admin login attempt for:', email);
-
         const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/admin/login`, {
             method: 'POST',
             headers: {
@@ -50,7 +37,6 @@ export function AuthProvider({ children }) {
         });
 
         const data = await response.json();
-        console.log('🔐 Admin login response:', data);
 
         if (response.ok) {
           localStorage.setItem('token', data.token);
@@ -58,32 +44,28 @@ export function AuthProvider({ children }) {
           localStorage.setItem('userData', JSON.stringify(data.admin));
           setUser(data.admin);
           setUserType('admin');
-
-          console.log('✅ Admin login successful, redirecting to dashboard...');
           return { success: true, data: data.admin };
         } else {
-          console.error('❌ Admin login failed:', data.message);
-          return { success: false, error: data.message || 'Login failed' };
+          return { success: false, error: data.message };
         }
        } catch (error) {
-          console.error('🚫 Admin login network error:', error);
-          return { success: false, error: 'Network error. Please check your connection.' };
+          return { success: false, error: 'Login failed. Please try again.' };
         }
       };
 
       // Also add this method to check authentication status:
-      const checkAuth = () => {
-        const token = localStorage.getItem('token');
-        const userType = localStorage.getItem('userType');
-        const userData = localStorage.getItem('userData');
+      // const checkAuth = () => {
+      //   const token = localStorage.getItem('token');
+      //   const userType = localStorage.getItem('userType');
+      //   const userData = localStorage.getItem('userData');
 
-        if (token && userType && userData) {
-          setUser(JSON.parse(userData));
-          setUserType(userType);
-          return true;
-        }
-        return false;
-      };
+      //   if (token && userType && userData) {
+      //     setUser(JSON.parse(userData));
+      //     setUserType(userType);
+      //     return true;
+      //   }
+      //   return false;
+      // };
 
       // Vendor Login
       const vendorLogin = async (email, password) => {
@@ -171,10 +153,12 @@ export function AuthProvider({ children }) {
 
       // Logout
       const logout = () => {
+        console.log('🚪 Logging out...');
         localStorage.removeItem('token');
         localStorage.removeItem('userType');
         localStorage.removeItem('userData');
         localStorage.removeItem('adminData');
+        
 
         // Redirect to login
         window.location.href = '/admin-login';
@@ -189,9 +173,7 @@ export function AuthProvider({ children }) {
         vendorLogin,
         adminSignup,
         vendorSignup,
-        login,
         logout,
-        checkAuth,
         loading
       };
       

@@ -1,10 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../models');
-const { where } = require('sequelize');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import db from '../models/index.js';
+import { where } from 'sequelize';
 
+const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Middleware to verify token
@@ -253,4 +253,4 @@ router.get('/verify', verifyToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
 // utils/sendEmail.js - COMPLETE WORKING VERSION
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
 let resendInstance = null;
 
@@ -70,4 +70,4 @@ async function sendEmail({ to, subject, html, category = 'transactional' }) {
   }
 }
 
-module.exports = sendEmail;
+export default sendEmail;
